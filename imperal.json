@@ -1,0 +1,2112 @@
+{
+  "manifest_schema_version": 3,
+  "sdk_version": "5.9.12",
+  "app_id": "x-connector",
+  "version": "0.1.0",
+  "name": "X Connector",
+  "description": "Post, reply, like, retweet, follow and read your X (Twitter) timeline, mentions, bookmarks and profile — all through chat. Connect once via 'Sign in with X'; everything else happens by asking. You never see or pay for an X API key.",
+  "icon": "icon.svg",
+  "actions_explicit": true,
+  "system": false,
+  "capabilities": [
+    "Post/Reply/Quote/Delete Tweets",
+    "Like/Retweet/Bookmark",
+    "Follow/Block/Mute",
+    "Timeline/Mentions/Search Reads",
+    "Trending Topics",
+    "notify:push"
+  ],
+  "tools": [
+    {
+      "name": "connect_x_account",
+      "description": "Get a 'Sign in with X' link to connect an X (Twitter) account to your X Connector. Use for: connect X, connect Twitter, link my X account.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "description": "No input required — imperal_id comes from ctx.user, not from the LLM.",
+        "properties": {},
+        "title": "NoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "authorize_url": {
+            "default": "",
+            "title": "Authorize Url",
+            "type": "string"
+          },
+          "state": {
+            "default": "",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "AuthorizeUrlResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "list_x_accounts",
+      "description": "List connected X (Twitter) accounts. Use for: what X accounts are connected, is my X account connected.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "description": "No input required — imperal_id comes from ctx.user, not from the LLM.",
+        "properties": {},
+        "title": "NoParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "AccountSummaryRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "x_user_id": {
+                "default": "",
+                "title": "X User Id",
+                "type": "string"
+              },
+              "x_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "X Username"
+              },
+              "x_display_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "X Display Name"
+              },
+              "access_token_expires_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Access Token Expires At"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              }
+            },
+            "title": "AccountSummaryRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "accounts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/AccountSummaryRecord"
+            },
+            "title": "Accounts",
+            "type": "array"
+          }
+        },
+        "title": "AccountsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "disconnect_x_account",
+      "description": "Disconnect an X (Twitter) account from your X Connector. Use for: disconnect X, disconnect Twitter.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:connection"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "account_id": {
+            "description": "Account ID from list_x_accounts.",
+            "minLength": 1,
+            "title": "Account Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id"
+        ],
+        "title": "AccountIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "disconnected": {
+            "default": false,
+            "title": "Disconnected",
+            "type": "boolean"
+          },
+          "account_id": {
+            "default": "",
+            "title": "Account Id",
+            "type": "string"
+          }
+        },
+        "title": "DisconnectResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.disconnect_x_account",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "post_tweet",
+      "description": "Post a new tweet to X. Use for: post to X, post to Twitter, tweet this.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:post"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "text": {
+            "description": "Tweet text.",
+            "maxLength": 25000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "media_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Pre-uploaded media IDs to attach, if any.",
+            "title": "Media Ids"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "PostTweetParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          },
+          "contains_url": {
+            "default": false,
+            "title": "Contains Url",
+            "type": "boolean"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "TweetResult",
+        "type": "object"
+      },
+      "event": "x-connector.post_tweet",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "post_thread",
+      "description": "Post a thread (chain of connected tweets) to X, in order. Use for: post a thread, post this as multiple tweets.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:post"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "texts": {
+            "description": "One tweet per entry, posted as a reply chain in order.",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 25,
+            "minItems": 1,
+            "title": "Texts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "texts"
+        ],
+        "title": "ThreadParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "post_ids": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Post Ids",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ThreadResult",
+        "type": "object"
+      },
+      "event": "x-connector.post_thread",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "reply_to_post",
+      "description": "Reply to an X post. Use for: reply to this tweet, respond to this post.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:post"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID to reply to.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 25000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id",
+          "text"
+        ],
+        "title": "ReplyParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          },
+          "contains_url": {
+            "default": false,
+            "title": "Contains Url",
+            "type": "boolean"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "TweetResult",
+        "type": "object"
+      },
+      "event": "x-connector.reply_to_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "quote_post",
+      "description": "Quote-tweet an X post with your own comment. Use for: quote this tweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:post"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID to quote.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 25000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id",
+          "text"
+        ],
+        "title": "QuoteParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "text": {
+            "default": "",
+            "title": "Text",
+            "type": "string"
+          },
+          "contains_url": {
+            "default": false,
+            "title": "Contains Url",
+            "type": "boolean"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "TweetResult",
+        "type": "object"
+      },
+      "event": "x-connector.quote_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "delete_post",
+      "description": "Permanently delete one of your own X posts. Use for: delete this tweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:post"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.delete_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "like_post",
+      "description": "Like an X post. Use for: like this tweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:like"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.like_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "unlike_post",
+      "description": "Unlike an X post you previously liked. Use for: unlike this tweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:like"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.unlike_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "retweet_post",
+      "description": "Retweet (repost) an X post. Use for: retweet this, repost this tweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:retweet"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.retweet_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "undo_retweet",
+      "description": "Undo a retweet/repost of an X post. Use for: undo this retweet.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:retweet"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.undo_retweet",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "bookmark_post",
+      "description": "Bookmark an X post for later. Use for: bookmark this tweet, save this post.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:bookmark"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.bookmark_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "remove_bookmark",
+      "description": "Remove an X post from your bookmarks. Use for: remove this bookmark, unsave this post.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:bookmark"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.remove_bookmark",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "follow_user",
+      "description": "Follow an X user by username. Use for: follow this account, follow @someone.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:follow"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.follow_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "unfollow_user",
+      "description": "Unfollow an X user by username. Use for: unfollow this account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:follow"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.unfollow_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "block_user",
+      "description": "Block an X user by username. Use for: block this account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:block"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.block_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "mute_user",
+      "description": "Mute an X user by username. Use for: mute this account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:mute"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.mute_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_home_timeline",
+      "description": "Read your X home timeline (posts from accounts you follow). Use for: show my X timeline, what's new on X.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "description": "Max items to return (capped at 25).",
+            "maximum": 25,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListReadParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "PostRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "title": "Text",
+                "type": "string"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              },
+              "author_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Username"
+              },
+              "like_count": {
+                "default": 0,
+                "title": "Like Count",
+                "type": "integer"
+              },
+              "retweet_count": {
+                "default": 0,
+                "title": "Retweet Count",
+                "type": "integer"
+              },
+              "reply_count": {
+                "default": 0,
+                "title": "Reply Count",
+                "type": "integer"
+              },
+              "impression_count": {
+                "default": 0,
+                "title": "Impression Count",
+                "type": "integer"
+              }
+            },
+            "title": "PostRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "posts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PostRecord"
+            },
+            "title": "Posts",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_mentions",
+      "description": "Read recent posts that mention you on X. Use for: who mentioned me on X, my X mentions.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "description": "Max items to return (capped at 25).",
+            "maximum": 25,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListReadParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "PostRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "title": "Text",
+                "type": "string"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              },
+              "author_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Username"
+              },
+              "like_count": {
+                "default": 0,
+                "title": "Like Count",
+                "type": "integer"
+              },
+              "retweet_count": {
+                "default": 0,
+                "title": "Retweet Count",
+                "type": "integer"
+              },
+              "reply_count": {
+                "default": 0,
+                "title": "Reply Count",
+                "type": "integer"
+              },
+              "impression_count": {
+                "default": 0,
+                "title": "Impression Count",
+                "type": "integer"
+              }
+            },
+            "title": "PostRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "posts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PostRecord"
+            },
+            "title": "Posts",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_my_posts",
+      "description": "Read your own recent X posts. Use for: show my recent tweets, my X posts.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "description": "Max items to return (capped at 25).",
+            "maximum": 25,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListReadParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "PostRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "title": "Text",
+                "type": "string"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              },
+              "author_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Username"
+              },
+              "like_count": {
+                "default": 0,
+                "title": "Like Count",
+                "type": "integer"
+              },
+              "retweet_count": {
+                "default": 0,
+                "title": "Retweet Count",
+                "type": "integer"
+              },
+              "reply_count": {
+                "default": 0,
+                "title": "Reply Count",
+                "type": "integer"
+              },
+              "impression_count": {
+                "default": 0,
+                "title": "Impression Count",
+                "type": "integer"
+              }
+            },
+            "title": "PostRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "posts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PostRecord"
+            },
+            "title": "Posts",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_bookmarks",
+      "description": "Read your bookmarked X posts. Use for: show my X bookmarks, saved tweets.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 20,
+            "description": "Max items to return (capped at 25).",
+            "maximum": 25,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "ListReadParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "PostRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "title": "Text",
+                "type": "string"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              },
+              "author_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Username"
+              },
+              "like_count": {
+                "default": 0,
+                "title": "Like Count",
+                "type": "integer"
+              },
+              "retweet_count": {
+                "default": 0,
+                "title": "Retweet Count",
+                "type": "integer"
+              },
+              "reply_count": {
+                "default": 0,
+                "title": "Reply Count",
+                "type": "integer"
+              },
+              "impression_count": {
+                "default": 0,
+                "title": "Impression Count",
+                "type": "integer"
+              }
+            },
+            "title": "PostRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "posts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PostRecord"
+            },
+            "title": "Posts",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "search_posts",
+      "description": "Search recent public X posts by keyword/operators. Use for: search X for, find tweets about.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "query": {
+            "description": "X search query (supports X's own search operators).",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 25,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "SearchParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "PostRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "text": {
+                "default": "",
+                "title": "Text",
+                "type": "string"
+              },
+              "created_at": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Created At"
+              },
+              "author_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Username"
+              },
+              "like_count": {
+                "default": 0,
+                "title": "Like Count",
+                "type": "integer"
+              },
+              "retweet_count": {
+                "default": 0,
+                "title": "Retweet Count",
+                "type": "integer"
+              },
+              "reply_count": {
+                "default": 0,
+                "title": "Reply Count",
+                "type": "integer"
+              },
+              "impression_count": {
+                "default": 0,
+                "title": "Impression Count",
+                "type": "integer"
+              }
+            },
+            "title": "PostRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "posts": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/PostRecord"
+            },
+            "title": "Posts",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostsListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_post_metrics",
+      "description": "Get engagement metrics (likes/retweets/replies/quotes/impressions) for one X post. Use for: how is this tweet doing.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "post_id": {
+            "description": "Post ID — from a read/search result, never invented.",
+            "minLength": 1,
+            "title": "Post Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "post_id"
+        ],
+        "title": "PostIdParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "like_count": {
+            "default": 0,
+            "title": "Like Count",
+            "type": "integer"
+          },
+          "retweet_count": {
+            "default": 0,
+            "title": "Retweet Count",
+            "type": "integer"
+          },
+          "reply_count": {
+            "default": 0,
+            "title": "Reply Count",
+            "type": "integer"
+          },
+          "quote_count": {
+            "default": 0,
+            "title": "Quote Count",
+            "type": "integer"
+          },
+          "impression_count": {
+            "default": 0,
+            "title": "Impression Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "PostMetricsResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_user_profile",
+      "description": "Look up a public X user's profile by username. Use for: who is this X account, look up this X profile.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "id": {
+            "default": "",
+            "title": "Id",
+            "type": "string"
+          },
+          "username": {
+            "default": "",
+            "title": "Username",
+            "type": "string"
+          },
+          "name": {
+            "default": "",
+            "title": "Name",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Description"
+          },
+          "followers_count": {
+            "default": 0,
+            "title": "Followers Count",
+            "type": "integer"
+          },
+          "following_count": {
+            "default": 0,
+            "title": "Following Count",
+            "type": "integer"
+          },
+          "tweet_count": {
+            "default": 0,
+            "title": "Tweet Count",
+            "type": "integer"
+          },
+          "verified": {
+            "default": false,
+            "title": "Verified",
+            "type": "boolean"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "UserProfileResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_followers",
+      "description": "List your (or the connected account's) X followers. Use for: who follows me on X, my X followers.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 6,
+            "description": "Max items to return (capped at 6 — followers/following cost more per item).",
+            "maximum": 6,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "FollowListParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "UserRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "username": {
+                "default": "",
+                "title": "Username",
+                "type": "string"
+              },
+              "name": {
+                "default": "",
+                "title": "Name",
+                "type": "string"
+              },
+              "followers_count": {
+                "default": 0,
+                "title": "Followers Count",
+                "type": "integer"
+              }
+            },
+            "title": "UserRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "users": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/UserRecord"
+            },
+            "title": "Users",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "UsersListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_following",
+      "description": "List who you (the connected account) follow on X. Use for: who do I follow on X, my X following list.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "limit": {
+            "default": 6,
+            "description": "Max items to return (capped at 6 — followers/following cost more per item).",
+            "maximum": 6,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          }
+        },
+        "title": "FollowListParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "UserRecord": {
+            "properties": {
+              "id": {
+                "default": "",
+                "title": "Id",
+                "type": "string"
+              },
+              "username": {
+                "default": "",
+                "title": "Username",
+                "type": "string"
+              },
+              "name": {
+                "default": "",
+                "title": "Name",
+                "type": "string"
+              },
+              "followers_count": {
+                "default": 0,
+                "title": "Followers Count",
+                "type": "integer"
+              }
+            },
+            "title": "UserRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "users": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/UserRecord"
+            },
+            "title": "Users",
+            "type": "array"
+          },
+          "count": {
+            "default": 0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "UsersListResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "get_trends",
+      "description": "What's trending on X right now, for a location (defaults to Worldwide). Use for: what's trending on X/Twitter, X trending topics.",
+      "action_type": "read",
+      "chain_callable": true,
+      "effects": [],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "woeid": {
+            "default": 1,
+            "description": "Yahoo WOEID for the location. Defaults to 1 (Worldwide). 23424977=US, 23424975=UK.",
+            "title": "Woeid",
+            "type": "integer"
+          }
+        },
+        "title": "TrendsParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "$defs": {
+          "TrendItemRecord": {
+            "properties": {
+              "name": {
+                "default": "",
+                "title": "Name",
+                "type": "string"
+              },
+              "post_count": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Post Count"
+              },
+              "trend_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Trend Url"
+              }
+            },
+            "title": "TrendItemRecord",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "woeid": {
+            "default": 1,
+            "title": "Woeid",
+            "type": "integer"
+          },
+          "trends": {
+            "default": [],
+            "items": {
+              "$ref": "#/$defs/TrendItemRecord"
+            },
+            "title": "Trends",
+            "type": "array"
+          },
+          "cached_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Cached At"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "TrendsResult",
+        "type": "object"
+      },
+      "event": "",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    }
+  ],
+  "signals": [],
+  "schedules": [],
+  "required_scopes": [],
+  "icon_size_bytes": 247,
+  "lifecycle": {
+    "health_check": {
+      "interval_sec": 60
+    }
+  },
+  "secrets": [
+    {
+      "name": "backend_jwt",
+      "description": "Platform JWT authenticating this extension to the x-connector-api backend microservice. Developer-managed only — never entered or seen by end users.",
+      "required": true,
+      "write_mode": "user",
+      "max_bytes": 2048,
+      "scope": "app",
+      "env_fallback": "IMPERAL_APPSECRET_X_CONNECTOR_BACKEND_JWT"
+    }
+  ],
+  "panels": [
+    {
+      "panel_id": "secrets",
+      "slot": "right",
+      "title": "Secrets",
+      "tree": {},
+      "icon": "KeyRound",
+      "refresh": "manual",
+      "center_overlay": false
+    }
+  ]
+}
