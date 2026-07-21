@@ -2269,6 +2269,15 @@
       "icon": "KeyRound",
       "refresh": "manual",
       "center_overlay": false
+    },
+    {
+      "panel_id": "sidebar",
+      "slot": "left",
+      "title": "X Connector",
+      "tree": {},
+      "icon": "Twitter",
+      "refresh": "on_event:x-connector.disconnect_x_account",
+      "center_overlay": false
     }
   ]
 }
