@@ -32,9 +32,14 @@
       },
       "return_schema": {
         "properties": {
-          "authorize_url": {
+          "auth_url": {
             "default": "",
-            "title": "Authorize Url",
+            "title": "Auth Url",
+            "type": "string"
+          },
+          "instruction": {
+            "default": "",
+            "title": "Instruction",
             "type": "string"
           },
           "state": {

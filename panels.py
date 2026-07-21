@@ -3,11 +3,11 @@ X accounts (with switch/disconnect) when connected. Mirrors gsc-connector's
 panels.py pattern exactly: same "Add another account" flow via ui.Call on
 the OAuth chat function, same account ListItem shape.
 
-X's OAuth is hand-built (not one of the SDK's built-in providers), so
-connect_x_account returns {authorize_url, state} instead of the SDK's
-{auth_url, instruction} shape used by google/microsoft/yahoo — the platform
-still opens whatever URL field the ActionResult carries in a popup, same
-UX as every other "Sign in with X" flow on this platform.
+X's OAuth is hand-built (not one of the SDK's built-in providers), but
+connect_x_account's response is normalised to the same {auth_url,
+instruction} shape the platform recognises for google/microsoft/yahoo —
+that exact field name is what makes the platform open it in a small
+popup window instead of just printing a link in chat.
 """
 from __future__ import annotations
 

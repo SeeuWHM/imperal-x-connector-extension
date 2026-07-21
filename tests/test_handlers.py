@@ -44,7 +44,10 @@ async def test_connect_x_account_success(monkeypatch):
     monkeypatch.setattr(handlers_oauth, "call_backend", fake_call)
     result = await handlers_oauth.fn_connect_x_account(_ctx(), NoParams())
     assert result.status == "success"
-    assert result.data.authorize_url.startswith("https://x.com")
+    # Response field is auth_url (not authorize_url) — the platform detects
+    # this exact name and opens it in a popup, same as Gmail/GSC.
+    assert result.data.auth_url.startswith("https://x.com")
+    assert result.data.instruction
 
 
 @pytest.mark.asyncio

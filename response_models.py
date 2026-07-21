@@ -14,7 +14,13 @@ from pydantic import BaseModel
 # ── oauth ──────────────────────────────────────────────────────────────
 
 class AuthorizeUrlResult(BaseModel):
-    authorize_url: str = ""
+    # Field name MUST be ``auth_url`` (not ``authorize_url``) — the platform
+    # recognises this exact field on an OAuth-connect function's response and
+    # opens it in a small popup window, identical to Gmail / Google Drive /
+    # Search Console. Any other field name just renders as plain chat text
+    # (a link the user has to spot and click manually — the bug this fixes).
+    auth_url: str = ""
+    instruction: str = ""
     state: str = ""
 
 

@@ -31,10 +31,19 @@ async def fn_connect_x_account(ctx, params: NoParams) -> ActionResult:
     data = await call_backend(ctx, "GET", "/v1/oauth/authorize")
     if "error" in data:
         return _err(data)
-    result = AuthorizeUrlResult(authorize_url=data.get("authorize_url", ""), state=data.get("state", ""))
+    # Field name MUST be auth_url — the platform recognises this exact field
+    # on an OAuth-connect function's response and opens it in a small popup
+    # window automatically (same UX as Gmail / Google Drive / Search Console).
+    # Using any other name (e.g. authorize_url) makes it render as plain
+    # chat text instead — a link the user has to spot and click manually.
+    result = AuthorizeUrlResult(
+        auth_url=data.get("authorize_url", ""),
+        instruction="Open the link and authorise X (Twitter) access to connect your account.",
+        state=data.get("state", ""),
+    )
     return ActionResult.success(
         data=result,
-        summary="Open this link to connect your X account.",
+        summary="Open the link to connect your X account.",
     )
 
 
