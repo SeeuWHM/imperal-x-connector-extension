@@ -1093,6 +1093,168 @@
       "owner_chat_tool": "x_connector"
     },
     {
+      "name": "unblock_user",
+      "description": "Unblock an X user by username, reversing a previous block. Use for: unblock this account, undo a block.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:block"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.unblock_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "unmute_user",
+      "description": "Unmute an X user by username, reversing a previous mute. Use for: unmute this account, undo a mute.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "delete:mute"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.unmute_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "upload_image_for_post",
+      "description": "Upload an image from a public URL to X so it can be attached to a tweet — returns a media_id to pass into post_tweet's media_ids. Use for: attach this image to my tweet, post a picture on X. NOTE: requires the connected X account to have re-authorized after media support was added — if this fails with a scope/permission error, ask the user to reconnect via connect_x_account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:media"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "image_url": {
+            "description": "Publicly reachable image URL (jpg/png/webp/gif, under 5MB).",
+            "minLength": 1,
+            "title": "Image Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_url"
+        ],
+        "title": "ImageUrlParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "media_id": {
+            "default": "",
+            "title": "Media Id",
+            "type": "string"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "MediaUploadResult",
+        "type": "object"
+      },
+      "event": "x-connector.upload_image_for_post",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
       "name": "get_home_timeline",
       "description": "Read your X home timeline (posts from accounts you follow). Use for: show my X timeline, what's new on X.",
       "action_type": "read",

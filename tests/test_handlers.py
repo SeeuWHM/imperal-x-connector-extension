@@ -21,9 +21,9 @@ import handlers_posts
 import handlers_reads
 import handlers_trends
 from params import (
-    AccountIdParams, FollowListParams, ListReadParams, NoParams, PostIdParams,
-    PostTweetParams, QuoteParams, ReplyParams, SearchParams, ThreadParams,
-    TrendsParams, UsernameParams,
+    AccountIdParams, FollowListParams, ImageUrlParams, ListReadParams, NoParams,
+    PostIdParams, PostTweetParams, QuoteParams, ReplyParams, SearchParams,
+    ThreadParams, TrendsParams, UsernameParams,
 )
 
 
@@ -202,6 +202,35 @@ async def test_follow_unfollow_block_mute(monkeypatch):
         ("POST", "/v1/users/someone/block"),
         ("POST", "/v1/users/someone/mute"),
     ]
+
+
+@pytest.mark.asyncio
+async def test_unblock_and_unmute(monkeypatch):
+    calls = []
+
+    async def fake_call(ctx, method, path, **kw):
+        calls.append((method, path))
+        return {"ok": True, "post_id": "target-1", "x_cost_usd": 0.005}
+
+    monkeypatch.setattr(handlers_posts, "call_backend", fake_call)
+    r1 = await handlers_posts.fn_unblock_user(_ctx(), UsernameParams(username="someone"))
+    r2 = await handlers_posts.fn_unmute_user(_ctx(), UsernameParams(username="someone"))
+    assert calls == [("DELETE", "/v1/users/someone/block"), ("DELETE", "/v1/users/someone/mute")]
+    assert r1.status == "success" and r2.status == "success"
+
+
+@pytest.mark.asyncio
+async def test_upload_image_for_post_success(monkeypatch):
+    async def fake_call(ctx, method, path, **kw):
+        assert method == "POST" and path == "/v1/media/upload"
+        assert kw["json"]["image_url"] == "https://example.com/pic.png"
+        return {"media_id": "media-123", "x_cost_usd": 0.005}
+
+    monkeypatch.setattr(handlers_posts, "call_backend", fake_call)
+    result = await handlers_posts.fn_upload_image_for_post(
+        _ctx(), ImageUrlParams(image_url="https://example.com/pic.png"))
+    assert result.status == "success"
+    assert result.data.media_id == "media-123"
 
 
 # ─── reads ───────────────────────────────────────────────────────────────

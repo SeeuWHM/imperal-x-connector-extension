@@ -46,6 +46,10 @@ class UsernameParams(BaseModel):
     username: str = Field(..., min_length=1, description="X username, without the @.")
 
 
+class ImageUrlParams(BaseModel):
+    image_url: str = Field(..., min_length=1, description="Publicly reachable image URL (jpg/png/webp/gif, under 5MB).")
+
+
 class ListReadParams(BaseModel):
     limit: int = Field(20, ge=1, le=25, description="Max items to return (capped at 25).")
 

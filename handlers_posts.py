@@ -10,8 +10,11 @@ from imperal_sdk.types import ActionResult
 
 from app import chat
 from api_client import call_backend, _err
-from params import PostIdParams, PostTweetParams, QuoteParams, ReplyParams, ThreadParams, UsernameParams
-from response_models import ActionResultRecord, ThreadResult, TweetResult
+from params import (
+    ImageUrlParams, PostIdParams, PostTweetParams, QuoteParams, ReplyParams,
+    ThreadParams, UsernameParams,
+)
+from response_models import ActionResultRecord, MediaUploadResult, ThreadResult, TweetResult
 
 
 @chat.function(
@@ -252,3 +255,57 @@ async def fn_mute_user(ctx, params: UsernameParams) -> ActionResult:
         return _err(data)
     result = ActionResultRecord(**data)
     return ActionResult.success(data=result, summary=f"Muted @{params.username}.")
+
+
+@chat.function(
+    "unblock_user",
+    description="Unblock an X user by username, reversing a previous block. Use for: unblock this account, undo a block.",
+    action_type="write", event="x-connector.unblock_user",
+    effects=["delete:block"],
+    data_model=ActionResultRecord,
+)
+async def fn_unblock_user(ctx, params: UsernameParams) -> ActionResult:
+    """Unblock user."""
+    data = await call_backend(ctx, "DELETE", f"/v1/users/{params.username}/block")
+    if "error" in data:
+        return _err(data)
+    result = ActionResultRecord(**data)
+    return ActionResult.success(data=result, summary=f"Unblocked @{params.username}.")
+
+
+@chat.function(
+    "unmute_user",
+    description="Unmute an X user by username, reversing a previous mute. Use for: unmute this account, undo a mute.",
+    action_type="write", event="x-connector.unmute_user",
+    effects=["delete:mute"],
+    data_model=ActionResultRecord,
+)
+async def fn_unmute_user(ctx, params: UsernameParams) -> ActionResult:
+    """Unmute user."""
+    data = await call_backend(ctx, "DELETE", f"/v1/users/{params.username}/mute")
+    if "error" in data:
+        return _err(data)
+    result = ActionResultRecord(**data)
+    return ActionResult.success(data=result, summary=f"Unmuted @{params.username}.")
+
+
+@chat.function(
+    "upload_image_for_post",
+    description=(
+        "Upload an image from a public URL to X so it can be attached to a tweet — returns a "
+        "media_id to pass into post_tweet's media_ids. Use for: attach this image to my tweet, "
+        "post a picture on X. NOTE: requires the connected X account to have re-authorized after "
+        "media support was added — if this fails with a scope/permission error, ask the user to "
+        "reconnect via connect_x_account."
+    ),
+    action_type="write", event="x-connector.upload_image_for_post",
+    effects=["create:media"],
+    data_model=MediaUploadResult,
+)
+async def fn_upload_image_for_post(ctx, params: ImageUrlParams) -> ActionResult:
+    """Upload image for post."""
+    data = await call_backend(ctx, "POST", "/v1/media/upload", json={"image_url": params.image_url})
+    if "error" in data:
+        return _err(data)
+    result = MediaUploadResult(**data)
+    return ActionResult.success(data=result, summary=f"Image uploaded (media_id {result.media_id}) — pass this into post_tweet's media_ids.")

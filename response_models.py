@@ -57,6 +57,11 @@ class ActionResultRecord(BaseModel):
     x_cost_usd: float = 0.0
 
 
+class MediaUploadResult(BaseModel):
+    media_id: str = ""
+    x_cost_usd: float = 0.0
+
+
 # ── reads ─────────────────────────────────────────────────────────────
 
 class PostRecord(BaseModel):
