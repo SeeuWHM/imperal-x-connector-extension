@@ -51,7 +51,14 @@ async def fn_post_thread(ctx, params: ThreadParams) -> ActionResult:
 
 @chat.function(
     "reply_to_post",
-    description="Reply to an X post. Use for: reply to this tweet, respond to this post.",
+    description=(
+        "Reply to an X post. Use for: reply to this tweet, respond to this post. "
+        "IMPORTANT (X platform rule, not something we control): X's API only allows a reply "
+        "if the post's author already @mentioned this account in that post, or it's this "
+        "account's own post -- reply_settings on the post is irrelevant to this. Check the "
+        "post's can_reply field from a read (e.g. search_posts/get_post_metrics) BEFORE "
+        "calling this to avoid a guaranteed-failing paid write."
+    ),
     action_type="write", event="x-connector.reply_to_post",
     effects=["create:post"],
     data_model=TweetResult,
@@ -67,7 +74,12 @@ async def fn_reply_to_post(ctx, params: ReplyParams) -> ActionResult:
 
 @chat.function(
     "quote_post",
-    description="Quote-tweet an X post with your own comment. Use for: quote this tweet.",
+    description=(
+        "Quote-tweet an X post with your own comment. Use for: quote this tweet. "
+        "IMPORTANT (X platform rule, not something we control): same restriction as replies -- "
+        "X's API only allows quoting a post if its author already @mentioned this account in "
+        "that post, or it's this account's own post. Check can_reply from a read first."
+    ),
     action_type="write", event="x-connector.quote_post",
     effects=["create:post"],
     data_model=TweetResult,
