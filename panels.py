@@ -1,13 +1,10 @@
 """X Connector sidebar panel — connect prompt when disconnected; connected
-X accounts (with switch/disconnect) when connected. Mirrors gsc-connector's
-panels.py pattern exactly: same "Add another account" flow via ui.Call on
-the OAuth chat function, same account ListItem shape.
+X accounts (with switch/disconnect) and navigation to the workspace dashboard.
 
-X's OAuth is hand-built (not one of the SDK's built-in providers), but
-connect_x_account's response is normalised to the same {auth_url,
-instruction} shape the platform recognises for google/microsoft/yahoo —
-that exact field name is what makes the platform open it in a small
-popup window instead of just printing a link in chat.
+Mirrors canonical Imperal extension layout:
+- Fast account status and multi-account switcher
+- Quick navigation buttons to open center workspace views (Feed, Compose, Trends)
+- Clean responsive layout respecting all SDK conventions.
 """
 from __future__ import annotations
 
@@ -30,6 +27,7 @@ def _account_items(accounts: list[dict], active_id: str) -> list[ui.UINode]:
             subtitle=(display_name or ("Active" if is_active else "Connected")),
             avatar=ui.Avatar(fallback=(username[0].upper() if username else "X"), size="sm"),
             badge=ui.Badge("✓", color="green") if is_active else None,
+            on_click=ui.Call("__panel__workspace", view="overview"),
             actions=[{"label": "Disconnect", "icon": "Trash2",
                       "on_click": ui.Call("disconnect_x_account", connection_id=connection_id)}],
         ))
@@ -72,26 +70,57 @@ async def sidebar_panel(ctx):
     if not accounts:
         return _connect_panel()
 
-    # No separate "active account" concept surfaced by the backend today —
-    # every connected account is usable; the most recently connected one
-    # (first in the list, backend orders newest-first) is shown as current.
     active_id = accounts[0].get("id", "") if accounts else ""
     account_items = _account_items(accounts, active_id)
 
-    add_account_btn = ui.Button(label="Add another X account", icon="Plus", variant="outline",
-                                 on_click=ui.Call("connect_x_account"))
+    # Quick workspace launchers in sidebar
+    workspace_nav = ui.Stack(direction="v", gap=2, children=[
+        ui.Button(
+            label="Open Dashboard",
+            icon="LayoutDashboard",
+            variant="primary",
+            full_width=True,
+            on_click=ui.Call("__panel__workspace", view="overview"),
+        ),
+        ui.Stack(direction="h", gap=2, wrap=True, children=[
+            ui.Button(
+                label="Feed",
+                icon="MessageSquare",
+                variant="secondary",
+                size="sm",
+                on_click=ui.Call("__panel__workspace", view="feed", subview="home"),
+            ),
+            ui.Button(
+                label="Compose",
+                icon="PenTool",
+                variant="secondary",
+                size="sm",
+                on_click=ui.Call("__panel__workspace", view="compose"),
+            ),
+            ui.Button(
+                label="Trends",
+                icon="TrendingUp",
+                variant="secondary",
+                size="sm",
+                on_click=ui.Call("__panel__workspace", view="trends"),
+            ),
+        ]),
+    ])
 
-    return ui.Stack(children=[
+    add_account_btn = ui.Button(label="Add another X account", icon="Plus", variant="outline",
+                                 size="sm", on_click=ui.Call("connect_x_account"))
+
+    return ui.Stack(gap=3, children=[
         ui.Header(text="X Connector", level=4),
         ui.Badge(label="● connected", color="green"),
+        workspace_nav,
         ui.Divider(),
-        ui.Text(content=f"Accounts ({len(accounts)})", variant="caption"),
+        ui.Text(content=f"Connected Accounts ({len(accounts)})", variant="caption"),
         ui.List(items=account_items) if account_items else ui.Empty(message="No accounts"),
         ui.Stack(direction="h", gap=2, wrap=True, children=[add_account_btn]),
         ui.Divider(),
         ui.Text(
-            content="Ask Webbee to post, reply, like, retweet, follow or read your "
-                    "timeline — no extra setup needed once connected.",
+            content="Manage posts, explore trends and monitor interactions directly from the workspace or via chat.",
             variant="caption",
         ),
     ])
