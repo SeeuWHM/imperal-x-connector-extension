@@ -129,16 +129,6 @@ async def workspace_panel(ctx):
     username = primary.get("x_username", "account")
     display_name = primary.get("x_display_name", username)
 
-    sample_activity_chart = [
-        {"name": "Mon", "Impressions": 420, "Interactions": 35},
-        {"name": "Tue", "Impressions": 580, "Interactions": 48},
-        {"name": "Wed", "Impressions": 510, "Interactions": 42},
-        {"name": "Thu", "Impressions": 690, "Interactions": 65},
-        {"name": "Fri", "Impressions": 840, "Interactions": 78},
-        {"name": "Sat", "Impressions": 920, "Interactions": 95},
-        {"name": "Sun", "Impressions": 760, "Interactions": 70},
-    ]
-
     return ui.Stack(
         gap=4,
         children=[
@@ -150,44 +140,28 @@ async def workspace_panel(ctx):
                         gap=1,
                         children=[
                             ui.Header(text=display_name, level=3),
-                            ui.Text(content=f"@{username} · Account Overview"),
+                            ui.Text(content=f"@{username}"),
                         ],
                     ),
                 ],
             ),
+            ui.Divider(),
             ui.Stats(
-                columns=3,
+                columns=2,
                 children=[
                     ui.Stat(
-                        label="Account Status",
-                        value="Active",
+                        label="Status",
+                        value="Connected",
                         icon="CheckCircle",
                         color="green",
                     ),
                     ui.Stat(
-                        label="Weekly Activity",
-                        value="+24%",
-                        icon="TrendingUp",
+                        label="Account Mode",
+                        value="OAuth 2.0",
+                        icon="Shield",
                         color="blue",
-                        trend="up",
-                    ),
-                    ui.Stat(
-                        label="API Tier",
-                        value="Free",
-                        icon="Zap",
-                        color="purple",
                     ),
                 ],
-            ),
-            ui.Card(
-                title="Weekly Activity & Reach",
-                subtitle="Overview of interactions and impressions over the last 7 days",
-                content=ui.Chart(
-                    data=sample_activity_chart,
-                    type="line",
-                    x_key="name",
-                    height=240,
-                ),
             ),
         ],
     )
