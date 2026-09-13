@@ -3642,6 +3642,17 @@
       "center_overlay": false,
       "stale_while_revalidate": true,
       "cache_ttl": 60
+    },
+    {
+      "panel_id": "workspace",
+      "slot": "center",
+      "title": "X Dashboard",
+      "tree": {},
+      "icon": "Twitter",
+      "refresh": "on_event:x-connector.disconnect_x_account,x-connector.post_tweet",
+      "center_overlay": false,
+      "stale_while_revalidate": true,
+      "cache_ttl": 60
     }
   ]
 }
