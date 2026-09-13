@@ -1,7 +1,7 @@
 """Panels for X Connector.
 
 Clean, minimal UI adhering to Imperal standards:
-- Sidebar: Account connection status, avatar, connection actions
+- Sidebar: Account connection status, avatar, connection actions (slot='left')
 - Center: Overview with key free metrics & engagement activity chart.
 """
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _account_items(accounts: list[dict], active_id: str = "") -> list:
     return items
 
 
-@ext.panel("sidebar")
+@ext.panel("sidebar", slot="left")
 async def sidebar_panel(ctx):
     """Sidebar: account status and connect/disconnect controls."""
     error = ""
@@ -83,17 +83,17 @@ async def sidebar_panel(ctx):
                 ],
             ),
             ui.Text(
-                content="Free tier includes account metrics and engagement overview without extra API costs.",
+                content="Free tier includes account metrics and engagement overview.",
                 variant="caption",
             ),
         ])
         return ui.Stack(children=children)
 
+    # Connected accounts list
     items = _account_items(accounts)
-
     children = [
         ui.Header(text="X (Twitter)", level=4),
-        ui.Badge(label=f"✓ {len(accounts)} Connected", color="green"),
+        ui.Badge(label=f"● {len(accounts)} connected", color="green"),
         ui.Divider(),
         ui.List(items=items),
         ui.Divider(),
@@ -121,8 +121,7 @@ async def workspace_panel(ctx):
 
     if not accounts:
         return ui.Empty(
-            title="Connect an X Account",
-            description="Sign in with X in the sidebar to view your metrics and activity charts.",
+            message="Connect your X account in the sidebar to view metrics and activity charts.",
             icon="Twitter",
         )
 
@@ -144,14 +143,14 @@ async def workspace_panel(ctx):
         gap=4,
         children=[
             ui.Row(
-                align="center",
-                gap="md",
+                gap=3,
                 children=[
                     ui.Avatar(fallback=(username[0].upper() if username else "X"), size="md"),
                     ui.Column(
+                        gap=1,
                         children=[
                             ui.Header(text=display_name, level=3),
-                            ui.Text(content=f"@{username} · Account Overview", color="muted"),
+                            ui.Text(content=f"@{username} · Account Overview"),
                         ],
                     ),
                 ],
@@ -184,16 +183,14 @@ async def workspace_panel(ctx):
             ),
             ui.Card(
                 title="Weekly Activity & Reach",
-                description="Overview of interactions and impressions over the last 7 days",
-                children=[
-                    ui.Chart(
-                        data=sample_activity_chart,
-                        type="line",
-                        x_key="name",
-                        height=240,
-                        show_legend=True,
-                    ),
-                ],
+                subtitle="Overview of interactions and impressions over the last 7 days",
+                content=ui.Chart(
+                    data=sample_activity_chart,
+                    type="line",
+                    x_key="name",
+                    height=240,
+                    show_legend=True,
+                ),
             ),
         ],
     )
