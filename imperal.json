@@ -1,10 +1,10 @@
 {
   "manifest_schema_version": 3,
-  "sdk_version": "5.9.12",
+  "sdk_version": "5.15.1",
   "app_id": "x-connector",
   "version": "0.1.0",
   "name": "X Connector",
-  "description": "Post, reply, like, retweet, follow and read your X (Twitter) timeline, mentions, bookmarks and profile — all through chat. Connect once via 'Sign in with X'; everything else happens by asking. You never see or pay for an X API key.",
+  "description": "Post, reply, like, retweet, follow and read your X (Twitter) timeline, mentions, bookmarks and profile \u2014 all through chat. Connect once via 'Sign in with X'; everything else happens by asking. You never see or pay for an X API key.",
   "icon": "icon.svg",
   "actions_explicit": true,
   "system": false,
@@ -13,10 +13,15 @@
     "Like/Retweet/Bookmark",
     "Follow/Block/Mute",
     "Timeline/Mentions/Search Reads",
-    "Trending Topics",
-    "notify:push"
+    "Trending Topics"
   ],
   "tools": [
+    {
+      "name": "skeleton_refresh_x_config",
+      "description": "X (Twitter) connection status \u2014 whether the user has connected an X account",
+      "scopes": [],
+      "parameters": {}
+    },
     {
       "name": "connect_x_account",
       "description": "Get a 'Sign in with X' link to connect an X (Twitter) account to your X Connector. Use for: connect X, connect Twitter, link my X account.",
@@ -25,7 +30,7 @@
       "effects": [],
       "id_projection": "",
       "params_schema": {
-        "description": "No input required — imperal_id comes from ctx.user, not from the LLM.",
+        "description": "No input required \u2014 imperal_id comes from ctx.user, not from the LLM.",
         "properties": {},
         "title": "NoParams",
         "type": "object"
@@ -65,7 +70,7 @@
       "effects": [],
       "id_projection": "",
       "params_schema": {
-        "description": "No input required — imperal_id comes from ctx.user, not from the LLM.",
+        "description": "No input required \u2014 imperal_id comes from ctx.user, not from the LLM.",
         "properties": {},
         "title": "NoParams",
         "type": "object"
@@ -167,17 +172,30 @@
       "id_projection": "",
       "params_schema": {
         "properties": {
-          "account_id": {
-            "description": "Account ID from list_x_accounts.",
+          "connection_id": {
+            "description": "Connection ID from list_x_accounts (or account ID).",
             "minLength": 1,
-            "title": "Account Id",
+            "title": "Connection Id",
             "type": "string"
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Optional legacy alias for connection_id.",
+            "title": "Account Id"
           }
         },
         "required": [
-          "account_id"
+          "connection_id"
         ],
-        "title": "AccountIdParams",
+        "title": "ConnectionIdParams",
         "type": "object"
       },
       "return_schema": {
@@ -335,7 +353,7 @@
     },
     {
       "name": "reply_to_post",
-      "description": "Reply to an X post. Use for: reply to this tweet, respond to this post.",
+      "description": "Reply to an X post. Use for: reply to this tweet, respond to this post. IMPORTANT (X platform rule, not something we control): X's API only allows a reply if the post's author already @mentioned this account in that post, or it's this account's own post -- reply_settings on the post is irrelevant to this. Check the post's can_reply field from a read (e.g. search_posts/get_post_metrics) BEFORE calling this to avoid a guaranteed-failing paid write.",
       "action_type": "write",
       "chain_callable": true,
       "effects": [
@@ -398,7 +416,7 @@
     },
     {
       "name": "quote_post",
-      "description": "Quote-tweet an X post with your own comment. Use for: quote this tweet.",
+      "description": "Quote-tweet an X post with your own comment. Use for: quote this tweet. IMPORTANT (X platform rule, not something we control): same restriction as replies -- X's API only allows quoting a post if its author already @mentioned this account in that post, or it's this account's own post. Check can_reply from a read first.",
       "action_type": "write",
       "chain_callable": true,
       "effects": [
@@ -471,7 +489,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -529,7 +547,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -587,7 +605,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -645,7 +663,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -703,7 +721,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -761,7 +779,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -819,7 +837,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -860,6 +878,52 @@
         "type": "object"
       },
       "event": "x-connector.remove_bookmark",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "upload_image_for_post",
+      "description": "Upload an image from a public URL to X so it can be attached to a tweet \u2014 returns a media_id to pass into post_tweet's media_ids. Use for: attach this image to my tweet, post a picture on X. NOTE: requires the connected X account to have re-authorized after media support was added \u2014 if this fails with a scope/permission error, ask the user to reconnect via connect_x_account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:media"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "image_url": {
+            "description": "Publicly reachable image URL (jpg/png/webp/gif, under 5MB).",
+            "minLength": 1,
+            "title": "Image Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_url"
+        ],
+        "title": "ImageUrlParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "media_id": {
+            "default": "",
+            "title": "Media Id",
+            "type": "string"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "MediaUploadResult",
+        "type": "object"
+      },
+      "event": "x-connector.upload_image_for_post",
       "background": false,
       "long_running": false,
       "scopes": [],
@@ -1040,64 +1104,6 @@
       "owner_chat_tool": "x_connector"
     },
     {
-      "name": "mute_user",
-      "description": "Mute an X user by username. Use for: mute this account.",
-      "action_type": "write",
-      "chain_callable": true,
-      "effects": [
-        "create:mute"
-      ],
-      "id_projection": "",
-      "params_schema": {
-        "properties": {
-          "username": {
-            "description": "X username, without the @.",
-            "minLength": 1,
-            "title": "Username",
-            "type": "string"
-          }
-        },
-        "required": [
-          "username"
-        ],
-        "title": "UsernameParams",
-        "type": "object"
-      },
-      "return_schema": {
-        "properties": {
-          "ok": {
-            "default": true,
-            "title": "Ok",
-            "type": "boolean"
-          },
-          "post_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Post Id"
-          },
-          "x_cost_usd": {
-            "default": 0.0,
-            "title": "X Cost Usd",
-            "type": "number"
-          }
-        },
-        "title": "ActionResultRecord",
-        "type": "object"
-      },
-      "event": "x-connector.mute_user",
-      "background": false,
-      "long_running": false,
-      "scopes": [],
-      "owner_chat_tool": "x_connector"
-    },
-    {
       "name": "unblock_user",
       "description": "Unblock an X user by username, reversing a previous block. Use for: unblock this account, undo a block.",
       "action_type": "write",
@@ -1150,6 +1156,64 @@
         "type": "object"
       },
       "event": "x-connector.unblock_user",
+      "background": false,
+      "long_running": false,
+      "scopes": [],
+      "owner_chat_tool": "x_connector"
+    },
+    {
+      "name": "mute_user",
+      "description": "Mute an X user by username. Use for: mute this account.",
+      "action_type": "write",
+      "chain_callable": true,
+      "effects": [
+        "create:mute"
+      ],
+      "id_projection": "",
+      "params_schema": {
+        "properties": {
+          "username": {
+            "description": "X username, without the @.",
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "title": "UsernameParams",
+        "type": "object"
+      },
+      "return_schema": {
+        "properties": {
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "post_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Post Id"
+          },
+          "x_cost_usd": {
+            "default": 0.0,
+            "title": "X Cost Usd",
+            "type": "number"
+          }
+        },
+        "title": "ActionResultRecord",
+        "type": "object"
+      },
+      "event": "x-connector.mute_user",
       "background": false,
       "long_running": false,
       "scopes": [],
@@ -1214,52 +1278,6 @@
       "owner_chat_tool": "x_connector"
     },
     {
-      "name": "upload_image_for_post",
-      "description": "Upload an image from a public URL to X so it can be attached to a tweet — returns a media_id to pass into post_tweet's media_ids. Use for: attach this image to my tweet, post a picture on X. NOTE: requires the connected X account to have re-authorized after media support was added — if this fails with a scope/permission error, ask the user to reconnect via connect_x_account.",
-      "action_type": "write",
-      "chain_callable": true,
-      "effects": [
-        "create:media"
-      ],
-      "id_projection": "",
-      "params_schema": {
-        "properties": {
-          "image_url": {
-            "description": "Publicly reachable image URL (jpg/png/webp/gif, under 5MB).",
-            "minLength": 1,
-            "title": "Image Url",
-            "type": "string"
-          }
-        },
-        "required": [
-          "image_url"
-        ],
-        "title": "ImageUrlParams",
-        "type": "object"
-      },
-      "return_schema": {
-        "properties": {
-          "media_id": {
-            "default": "",
-            "title": "Media Id",
-            "type": "string"
-          },
-          "x_cost_usd": {
-            "default": 0.0,
-            "title": "X Cost Usd",
-            "type": "number"
-          }
-        },
-        "title": "MediaUploadResult",
-        "type": "object"
-      },
-      "event": "x-connector.upload_image_for_post",
-      "background": false,
-      "long_running": false,
-      "scopes": [],
-      "owner_chat_tool": "x_connector"
-    },
-    {
       "name": "get_home_timeline",
       "description": "Read your X home timeline (posts from accounts you follow). Use for: show my X timeline, what's new on X.",
       "action_type": "read",
@@ -1282,6 +1300,65 @@
       },
       "return_schema": {
         "$defs": {
+          "MediaRecord": {
+            "properties": {
+              "type": {
+                "default": "",
+                "title": "Type",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "preview_image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Preview Image Url"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Alt Text"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Duration Ms"
+              }
+            },
+            "title": "MediaRecord",
+            "type": "object"
+          },
           "PostRecord": {
             "properties": {
               "id": {
@@ -1318,6 +1395,40 @@
                 "default": null,
                 "title": "Author Username"
               },
+              "author_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Name"
+              },
+              "author_verified": {
+                "default": false,
+                "title": "Author Verified",
+                "type": "boolean"
+              },
+              "author_verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Verified Type"
+              },
+              "author_followers_count": {
+                "default": 0,
+                "title": "Author Followers Count",
+                "type": "integer"
+              },
               "like_count": {
                 "default": 0,
                 "title": "Like Count",
@@ -1333,10 +1444,138 @@
                 "title": "Reply Count",
                 "type": "integer"
               },
+              "quote_count": {
+                "default": 0,
+                "title": "Quote Count",
+                "type": "integer"
+              },
               "impression_count": {
                 "default": 0,
                 "title": "Impression Count",
                 "type": "integer"
+              },
+              "bookmark_count": {
+                "default": 0,
+                "title": "Bookmark Count",
+                "type": "integer"
+              },
+              "reply_settings": {
+                "default": "everyone",
+                "title": "Reply Settings",
+                "type": "string"
+              },
+              "can_reply": {
+                "default": true,
+                "title": "Can Reply",
+                "type": "boolean"
+              },
+              "reply_restriction_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reply Restriction Reason"
+              },
+              "hashtags": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hashtags",
+                "type": "array"
+              },
+              "mentioned_usernames": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Mentioned Usernames",
+                "type": "array"
+              },
+              "urls": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Urls",
+                "type": "array"
+              },
+              "media": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/MediaRecord"
+                },
+                "title": "Media",
+                "type": "array"
+              },
+              "topics": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Topics",
+                "type": "array"
+              },
+              "conversation_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conversation Id"
+              },
+              "is_reply": {
+                "default": false,
+                "title": "Is Reply",
+                "type": "boolean"
+              },
+              "is_retweet": {
+                "default": false,
+                "title": "Is Retweet",
+                "type": "boolean"
+              },
+              "is_quote": {
+                "default": false,
+                "title": "Is Quote",
+                "type": "boolean"
+              },
+              "in_reply_to_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "In Reply To Username"
+              },
+              "lang": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lang"
+              },
+              "possibly_sensitive": {
+                "default": false,
+                "title": "Possibly Sensitive",
+                "type": "boolean"
               }
             },
             "title": "PostRecord",
@@ -1395,6 +1634,65 @@
       },
       "return_schema": {
         "$defs": {
+          "MediaRecord": {
+            "properties": {
+              "type": {
+                "default": "",
+                "title": "Type",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "preview_image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Preview Image Url"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Alt Text"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Duration Ms"
+              }
+            },
+            "title": "MediaRecord",
+            "type": "object"
+          },
           "PostRecord": {
             "properties": {
               "id": {
@@ -1431,6 +1729,40 @@
                 "default": null,
                 "title": "Author Username"
               },
+              "author_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Name"
+              },
+              "author_verified": {
+                "default": false,
+                "title": "Author Verified",
+                "type": "boolean"
+              },
+              "author_verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Verified Type"
+              },
+              "author_followers_count": {
+                "default": 0,
+                "title": "Author Followers Count",
+                "type": "integer"
+              },
               "like_count": {
                 "default": 0,
                 "title": "Like Count",
@@ -1446,10 +1778,138 @@
                 "title": "Reply Count",
                 "type": "integer"
               },
+              "quote_count": {
+                "default": 0,
+                "title": "Quote Count",
+                "type": "integer"
+              },
               "impression_count": {
                 "default": 0,
                 "title": "Impression Count",
                 "type": "integer"
+              },
+              "bookmark_count": {
+                "default": 0,
+                "title": "Bookmark Count",
+                "type": "integer"
+              },
+              "reply_settings": {
+                "default": "everyone",
+                "title": "Reply Settings",
+                "type": "string"
+              },
+              "can_reply": {
+                "default": true,
+                "title": "Can Reply",
+                "type": "boolean"
+              },
+              "reply_restriction_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reply Restriction Reason"
+              },
+              "hashtags": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hashtags",
+                "type": "array"
+              },
+              "mentioned_usernames": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Mentioned Usernames",
+                "type": "array"
+              },
+              "urls": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Urls",
+                "type": "array"
+              },
+              "media": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/MediaRecord"
+                },
+                "title": "Media",
+                "type": "array"
+              },
+              "topics": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Topics",
+                "type": "array"
+              },
+              "conversation_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conversation Id"
+              },
+              "is_reply": {
+                "default": false,
+                "title": "Is Reply",
+                "type": "boolean"
+              },
+              "is_retweet": {
+                "default": false,
+                "title": "Is Retweet",
+                "type": "boolean"
+              },
+              "is_quote": {
+                "default": false,
+                "title": "Is Quote",
+                "type": "boolean"
+              },
+              "in_reply_to_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "In Reply To Username"
+              },
+              "lang": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lang"
+              },
+              "possibly_sensitive": {
+                "default": false,
+                "title": "Possibly Sensitive",
+                "type": "boolean"
               }
             },
             "title": "PostRecord",
@@ -1508,6 +1968,65 @@
       },
       "return_schema": {
         "$defs": {
+          "MediaRecord": {
+            "properties": {
+              "type": {
+                "default": "",
+                "title": "Type",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "preview_image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Preview Image Url"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Alt Text"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Duration Ms"
+              }
+            },
+            "title": "MediaRecord",
+            "type": "object"
+          },
           "PostRecord": {
             "properties": {
               "id": {
@@ -1544,6 +2063,40 @@
                 "default": null,
                 "title": "Author Username"
               },
+              "author_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Name"
+              },
+              "author_verified": {
+                "default": false,
+                "title": "Author Verified",
+                "type": "boolean"
+              },
+              "author_verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Verified Type"
+              },
+              "author_followers_count": {
+                "default": 0,
+                "title": "Author Followers Count",
+                "type": "integer"
+              },
               "like_count": {
                 "default": 0,
                 "title": "Like Count",
@@ -1559,10 +2112,138 @@
                 "title": "Reply Count",
                 "type": "integer"
               },
+              "quote_count": {
+                "default": 0,
+                "title": "Quote Count",
+                "type": "integer"
+              },
               "impression_count": {
                 "default": 0,
                 "title": "Impression Count",
                 "type": "integer"
+              },
+              "bookmark_count": {
+                "default": 0,
+                "title": "Bookmark Count",
+                "type": "integer"
+              },
+              "reply_settings": {
+                "default": "everyone",
+                "title": "Reply Settings",
+                "type": "string"
+              },
+              "can_reply": {
+                "default": true,
+                "title": "Can Reply",
+                "type": "boolean"
+              },
+              "reply_restriction_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reply Restriction Reason"
+              },
+              "hashtags": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hashtags",
+                "type": "array"
+              },
+              "mentioned_usernames": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Mentioned Usernames",
+                "type": "array"
+              },
+              "urls": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Urls",
+                "type": "array"
+              },
+              "media": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/MediaRecord"
+                },
+                "title": "Media",
+                "type": "array"
+              },
+              "topics": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Topics",
+                "type": "array"
+              },
+              "conversation_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conversation Id"
+              },
+              "is_reply": {
+                "default": false,
+                "title": "Is Reply",
+                "type": "boolean"
+              },
+              "is_retweet": {
+                "default": false,
+                "title": "Is Retweet",
+                "type": "boolean"
+              },
+              "is_quote": {
+                "default": false,
+                "title": "Is Quote",
+                "type": "boolean"
+              },
+              "in_reply_to_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "In Reply To Username"
+              },
+              "lang": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lang"
+              },
+              "possibly_sensitive": {
+                "default": false,
+                "title": "Possibly Sensitive",
+                "type": "boolean"
               }
             },
             "title": "PostRecord",
@@ -1621,6 +2302,65 @@
       },
       "return_schema": {
         "$defs": {
+          "MediaRecord": {
+            "properties": {
+              "type": {
+                "default": "",
+                "title": "Type",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "preview_image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Preview Image Url"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Alt Text"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Duration Ms"
+              }
+            },
+            "title": "MediaRecord",
+            "type": "object"
+          },
           "PostRecord": {
             "properties": {
               "id": {
@@ -1657,6 +2397,40 @@
                 "default": null,
                 "title": "Author Username"
               },
+              "author_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Name"
+              },
+              "author_verified": {
+                "default": false,
+                "title": "Author Verified",
+                "type": "boolean"
+              },
+              "author_verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Verified Type"
+              },
+              "author_followers_count": {
+                "default": 0,
+                "title": "Author Followers Count",
+                "type": "integer"
+              },
               "like_count": {
                 "default": 0,
                 "title": "Like Count",
@@ -1672,10 +2446,138 @@
                 "title": "Reply Count",
                 "type": "integer"
               },
+              "quote_count": {
+                "default": 0,
+                "title": "Quote Count",
+                "type": "integer"
+              },
               "impression_count": {
                 "default": 0,
                 "title": "Impression Count",
                 "type": "integer"
+              },
+              "bookmark_count": {
+                "default": 0,
+                "title": "Bookmark Count",
+                "type": "integer"
+              },
+              "reply_settings": {
+                "default": "everyone",
+                "title": "Reply Settings",
+                "type": "string"
+              },
+              "can_reply": {
+                "default": true,
+                "title": "Can Reply",
+                "type": "boolean"
+              },
+              "reply_restriction_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reply Restriction Reason"
+              },
+              "hashtags": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hashtags",
+                "type": "array"
+              },
+              "mentioned_usernames": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Mentioned Usernames",
+                "type": "array"
+              },
+              "urls": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Urls",
+                "type": "array"
+              },
+              "media": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/MediaRecord"
+                },
+                "title": "Media",
+                "type": "array"
+              },
+              "topics": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Topics",
+                "type": "array"
+              },
+              "conversation_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conversation Id"
+              },
+              "is_reply": {
+                "default": false,
+                "title": "Is Reply",
+                "type": "boolean"
+              },
+              "is_retweet": {
+                "default": false,
+                "title": "Is Retweet",
+                "type": "boolean"
+              },
+              "is_quote": {
+                "default": false,
+                "title": "Is Quote",
+                "type": "boolean"
+              },
+              "in_reply_to_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "In Reply To Username"
+              },
+              "lang": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lang"
+              },
+              "possibly_sensitive": {
+                "default": false,
+                "title": "Possibly Sensitive",
+                "type": "boolean"
               }
             },
             "title": "PostRecord",
@@ -1743,6 +2645,65 @@
       },
       "return_schema": {
         "$defs": {
+          "MediaRecord": {
+            "properties": {
+              "type": {
+                "default": "",
+                "title": "Type",
+                "type": "string"
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Url"
+              },
+              "preview_image_url": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Preview Image Url"
+              },
+              "alt_text": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Alt Text"
+              },
+              "duration_ms": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Duration Ms"
+              }
+            },
+            "title": "MediaRecord",
+            "type": "object"
+          },
           "PostRecord": {
             "properties": {
               "id": {
@@ -1779,6 +2740,40 @@
                 "default": null,
                 "title": "Author Username"
               },
+              "author_name": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Name"
+              },
+              "author_verified": {
+                "default": false,
+                "title": "Author Verified",
+                "type": "boolean"
+              },
+              "author_verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Author Verified Type"
+              },
+              "author_followers_count": {
+                "default": 0,
+                "title": "Author Followers Count",
+                "type": "integer"
+              },
               "like_count": {
                 "default": 0,
                 "title": "Like Count",
@@ -1794,10 +2789,138 @@
                 "title": "Reply Count",
                 "type": "integer"
               },
+              "quote_count": {
+                "default": 0,
+                "title": "Quote Count",
+                "type": "integer"
+              },
               "impression_count": {
                 "default": 0,
                 "title": "Impression Count",
                 "type": "integer"
+              },
+              "bookmark_count": {
+                "default": 0,
+                "title": "Bookmark Count",
+                "type": "integer"
+              },
+              "reply_settings": {
+                "default": "everyone",
+                "title": "Reply Settings",
+                "type": "string"
+              },
+              "can_reply": {
+                "default": true,
+                "title": "Can Reply",
+                "type": "boolean"
+              },
+              "reply_restriction_reason": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reply Restriction Reason"
+              },
+              "hashtags": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Hashtags",
+                "type": "array"
+              },
+              "mentioned_usernames": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Mentioned Usernames",
+                "type": "array"
+              },
+              "urls": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Urls",
+                "type": "array"
+              },
+              "media": {
+                "default": [],
+                "items": {
+                  "$ref": "#/$defs/MediaRecord"
+                },
+                "title": "Media",
+                "type": "array"
+              },
+              "topics": {
+                "default": [],
+                "items": {
+                  "type": "string"
+                },
+                "title": "Topics",
+                "type": "array"
+              },
+              "conversation_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conversation Id"
+              },
+              "is_reply": {
+                "default": false,
+                "title": "Is Reply",
+                "type": "boolean"
+              },
+              "is_retweet": {
+                "default": false,
+                "title": "Is Retweet",
+                "type": "boolean"
+              },
+              "is_quote": {
+                "default": false,
+                "title": "Is Quote",
+                "type": "boolean"
+              },
+              "in_reply_to_username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "In Reply To Username"
+              },
+              "lang": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Lang"
+              },
+              "possibly_sensitive": {
+                "default": false,
+                "title": "Possibly Sensitive",
+                "type": "boolean"
               }
             },
             "title": "PostRecord",
@@ -1843,7 +2966,7 @@
       "params_schema": {
         "properties": {
           "post_id": {
-            "description": "Post ID — from a read/search result, never invented.",
+            "description": "Post ID \u2014 from a read/search result, never invented.",
             "minLength": 1,
             "title": "Post Id",
             "type": "string"
@@ -1886,6 +3009,62 @@
             "default": 0,
             "title": "Impression Count",
             "type": "integer"
+          },
+          "bookmark_count": {
+            "default": 0,
+            "title": "Bookmark Count",
+            "type": "integer"
+          },
+          "reply_settings": {
+            "default": "everyone",
+            "title": "Reply Settings",
+            "type": "string"
+          },
+          "can_reply": {
+            "default": true,
+            "title": "Can Reply",
+            "type": "boolean"
+          },
+          "reply_restriction_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Reply Restriction Reason"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Conversation Id"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Lang"
+          },
+          "possibly_sensitive": {
+            "default": false,
+            "title": "Possibly Sensitive",
+            "type": "boolean"
           },
           "x_cost_usd": {
             "default": 0.0,
@@ -1953,6 +3132,42 @@
             "default": null,
             "title": "Description"
           },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Location"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Url"
+          },
+          "profile_image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Profile Image Url"
+          },
           "followers_count": {
             "default": 0,
             "title": "Followers Count",
@@ -1968,10 +3183,72 @@
             "title": "Tweet Count",
             "type": "integer"
           },
+          "listed_count": {
+            "default": 0,
+            "title": "Listed Count",
+            "type": "integer"
+          },
           "verified": {
             "default": false,
             "title": "Verified",
             "type": "boolean"
+          },
+          "verified_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Verified Type"
+          },
+          "protected": {
+            "default": false,
+            "title": "Protected",
+            "type": "boolean"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Created At"
+          },
+          "pinned_tweet_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pinned Tweet Id"
+          },
+          "hashtags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Hashtags",
+            "type": "array"
+          },
+          "urls": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Urls",
+            "type": "array"
           },
           "x_cost_usd": {
             "default": 0.0,
@@ -1999,7 +3276,7 @@
         "properties": {
           "limit": {
             "default": 6,
-            "description": "Max items to return (capped at 6 — followers/following cost more per item).",
+            "description": "Max items to return (capped at 6 \u2014 followers/following cost more per item).",
             "maximum": 6,
             "minimum": 1,
             "title": "Limit",
@@ -2028,10 +3305,49 @@
                 "title": "Name",
                 "type": "string"
               },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Description"
+              },
               "followers_count": {
                 "default": 0,
                 "title": "Followers Count",
                 "type": "integer"
+              },
+              "following_count": {
+                "default": 0,
+                "title": "Following Count",
+                "type": "integer"
+              },
+              "verified": {
+                "default": false,
+                "title": "Verified",
+                "type": "boolean"
+              },
+              "verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Verified Type"
+              },
+              "protected": {
+                "default": false,
+                "title": "Protected",
+                "type": "boolean"
               }
             },
             "title": "UserRecord",
@@ -2078,7 +3394,7 @@
         "properties": {
           "limit": {
             "default": 6,
-            "description": "Max items to return (capped at 6 — followers/following cost more per item).",
+            "description": "Max items to return (capped at 6 \u2014 followers/following cost more per item).",
             "maximum": 6,
             "minimum": 1,
             "title": "Limit",
@@ -2107,10 +3423,49 @@
                 "title": "Name",
                 "type": "string"
               },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Description"
+              },
               "followers_count": {
                 "default": 0,
                 "title": "Followers Count",
                 "type": "integer"
+              },
+              "following_count": {
+                "default": 0,
+                "title": "Following Count",
+                "type": "integer"
+              },
+              "verified": {
+                "default": false,
+                "title": "Verified",
+                "type": "boolean"
+              },
+              "verified_type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Verified Type"
+              },
+              "protected": {
+                "default": false,
+                "title": "Protected",
+                "type": "boolean"
               }
             },
             "title": "UserRecord",
@@ -2257,7 +3612,7 @@
   "secrets": [
     {
       "name": "backend_jwt",
-      "description": "Platform JWT authenticating this extension to the x-connector-api backend microservice. Developer-managed only — never entered or seen by end users.",
+      "description": "Platform JWT authenticating this extension to the x-connector-api backend microservice. Developer-managed only \u2014 never entered or seen by end users.",
       "required": true,
       "write_mode": "user",
       "max_bytes": 2048,
@@ -2273,7 +3628,9 @@
       "tree": {},
       "icon": "KeyRound",
       "refresh": "manual",
-      "center_overlay": false
+      "center_overlay": false,
+      "stale_while_revalidate": true,
+      "cache_ttl": 60
     },
     {
       "panel_id": "sidebar",
@@ -2282,7 +3639,9 @@
       "tree": {},
       "icon": "Twitter",
       "refresh": "on_event:x-connector.disconnect_x_account",
-      "center_overlay": false
+      "center_overlay": false,
+      "stale_while_revalidate": true,
+      "cache_ttl": 60
     }
   ]
 }

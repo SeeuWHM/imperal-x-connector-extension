@@ -52,7 +52,6 @@ ext = Extension(
         "Follow/Block/Mute",
         "Timeline/Mentions/Search Reads",
         "Trending Topics",
-        "notify:push",
     ],
 )
 
@@ -64,7 +63,9 @@ chat = ChatExtension(
         "follow/block/mute users, read your home timeline/mentions/own posts/bookmarks, "
         "search recent posts, check a post's metrics or a user's public profile, list your "
         "followers/following, and check what's trending. Always call connect_x_account first "
-        "if no account is connected (list_x_accounts to check)."
+        "if no account is connected (list_x_accounts to check). "
+        "If an action returns an INSUFFICIENT_FUNDS error ('X API credits depleted'), explain "
+        "plainly and politely that the service developer's API balance on X needs topping up."
     ),
     max_rounds=10,
 )

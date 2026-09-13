@@ -20,18 +20,18 @@ from api_client import call_backend
 def _account_items(accounts: list[dict], active_id: str) -> list[ui.UINode]:
     items = []
     for acc in accounts:
-        account_id = acc.get("id", "")
+        connection_id = acc.get("id", "")
         username = acc.get("x_username") or acc.get("x_user_id", "")
         display_name = acc.get("x_display_name") or ""
-        is_active = account_id == active_id
+        is_active = connection_id == active_id
         items.append(ui.ListItem(
-            id=account_id,
-            title=f"@{username}" if username else account_id,
+            id=connection_id,
+            title=f"@{username}" if username else connection_id,
             subtitle=(display_name or ("Active" if is_active else "Connected")),
             avatar=ui.Avatar(fallback=(username[0].upper() if username else "X"), size="sm"),
             badge=ui.Badge("✓", color="green") if is_active else None,
             actions=[{"label": "Disconnect", "icon": "Trash2",
-                      "on_click": ui.Call("disconnect_x_account", account_id=account_id)}],
+                      "on_click": ui.Call("disconnect_x_account", connection_id=connection_id)}],
         ))
     return items
 

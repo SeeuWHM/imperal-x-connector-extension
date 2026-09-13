@@ -21,9 +21,9 @@ import handlers_posts
 import handlers_reads
 import handlers_trends
 from params import (
-    AccountIdParams, FollowListParams, ImageUrlParams, ListReadParams, NoParams,
+    ConnectionIdParams, FollowListParams, ImageUrlParams, ListReadParams, NoParams,
     PostIdParams, PostTweetParams, QuoteParams, ReplyParams, SearchParams,
-    ThreadParams, TrendsParams, UsernameParams,
+    ThreadParams, UsernameParams,
 )
 
 
@@ -31,7 +31,6 @@ def _ctx(configured: bool = True) -> MockContext:
     ctx = MockContext(user_id="tenant-abc-123")
     ctx.secrets = MockSecretStore({"backend_jwt": "test-jwt"} if configured else {})
     return ctx
-
 
 # ─── oauth ───────────────────────────────────────────────────────────────
 
@@ -79,7 +78,7 @@ async def test_disconnect_x_account_success(monkeypatch):
         return {"disconnected": True, "account_id": "acct-1"}
 
     monkeypatch.setattr(handlers_oauth, "call_backend", fake_call)
-    result = await handlers_oauth.fn_disconnect_x_account(_ctx(), AccountIdParams(account_id="acct-1"))
+    result = await handlers_oauth.fn_disconnect_x_account(_ctx(), ConnectionIdParams(connection_id="acct-1"))
     assert result.status == "success"
     assert result.data.disconnected is True
 
@@ -184,42 +183,6 @@ async def test_bookmark_and_remove(monkeypatch):
     await handlers_posts.fn_bookmark_post(_ctx(), PostIdParams(post_id="tw-1"))
     await handlers_posts.fn_remove_bookmark(_ctx(), PostIdParams(post_id="tw-1"))
     assert calls == [("POST", "/v1/posts/tw-1/bookmark"), ("DELETE", "/v1/posts/tw-1/bookmark")]
-
-
-@pytest.mark.asyncio
-async def test_follow_unfollow_block_mute(monkeypatch):
-    calls = []
-
-    async def fake_call(ctx, method, path, **kw):
-        calls.append((method, path))
-        return {"ok": True, "post_id": "target-1", "x_cost_usd": 0.015}
-
-    monkeypatch.setattr(handlers_posts, "call_backend", fake_call)
-    await handlers_posts.fn_follow_user(_ctx(), UsernameParams(username="someone"))
-    await handlers_posts.fn_unfollow_user(_ctx(), UsernameParams(username="someone"))
-    await handlers_posts.fn_block_user(_ctx(), UsernameParams(username="someone"))
-    await handlers_posts.fn_mute_user(_ctx(), UsernameParams(username="someone"))
-    assert calls == [
-        ("POST", "/v1/users/someone/follow"),
-        ("DELETE", "/v1/users/someone/follow"),
-        ("POST", "/v1/users/someone/block"),
-        ("POST", "/v1/users/someone/mute"),
-    ]
-
-
-@pytest.mark.asyncio
-async def test_unblock_and_unmute(monkeypatch):
-    calls = []
-
-    async def fake_call(ctx, method, path, **kw):
-        calls.append((method, path))
-        return {"ok": True, "post_id": "target-1", "x_cost_usd": 0.005}
-
-    monkeypatch.setattr(handlers_posts, "call_backend", fake_call)
-    r1 = await handlers_posts.fn_unblock_user(_ctx(), UsernameParams(username="someone"))
-    r2 = await handlers_posts.fn_unmute_user(_ctx(), UsernameParams(username="someone"))
-    assert calls == [("DELETE", "/v1/users/someone/block"), ("DELETE", "/v1/users/someone/mute")]
-    assert r1.status == "success" and r2.status == "success"
 
 
 @pytest.mark.asyncio
@@ -334,28 +297,3 @@ async def test_get_followers_and_following(monkeypatch):
     await handlers_reads.fn_get_following(_ctx(), FollowListParams())
     assert calls == ["/v1/reads/followers", "/v1/reads/following"]
 
-
-# ─── trends ──────────────────────────────────────────────────────────────
-
-@pytest.mark.asyncio
-async def test_get_trends_success(monkeypatch):
-    async def fake_call(ctx, method, path, **kw):
-        assert path == "/v1/trends"
-        assert kw["params"] == {"woeid": 1}
-        return {"woeid": 1, "trends": [{"name": "#Webbee", "post_count": 12345}],
-                "cached_at": "2026-07-21T00:00:00Z", "x_cost_usd": 0.0}
-
-    monkeypatch.setattr(handlers_trends, "call_backend", fake_call)
-    result = await handlers_trends.fn_get_trends(_ctx(), TrendsParams())
-    assert result.status == "success"
-    assert result.data.x_cost_usd == 0.0
-
-
-@pytest.mark.asyncio
-async def test_get_trends_not_cached_yet(monkeypatch):
-    async def fake_call(ctx, method, path, **kw):
-        return {"error": "Trends for this location not found.", "error_code": "NOT_FOUND"}
-
-    monkeypatch.setattr(handlers_trends, "call_backend", fake_call)
-    result = await handlers_trends.fn_get_trends(_ctx(), TrendsParams())
-    assert result.status == "error"

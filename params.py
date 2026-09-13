@@ -15,8 +15,9 @@ class NoParams(BaseModel):
     """No input required — imperal_id comes from ctx.user, not from the LLM."""
 
 
-class AccountIdParams(BaseModel):
-    account_id: str = Field(..., min_length=1, description="Account ID from list_x_accounts.")
+class ConnectionIdParams(BaseModel):
+    connection_id: str = Field(..., min_length=1, description="Connection ID from list_x_accounts (or account ID).")
+    account_id: Optional[str] = Field(None, description="Optional legacy alias for connection_id.")
 
 
 class PostTweetParams(BaseModel):

@@ -11,15 +11,20 @@ import pytest
 from pydantic import ValidationError
 
 from params import (
-    AccountIdParams, FollowListParams, ListReadParams, PostIdParams,
+    ConnectionIdParams, FollowListParams, ListReadParams, PostIdParams,
     PostTweetParams, ReplyParams, SearchParams, ThreadParams, TrendsParams,
     UsernameParams,
 )
 
 
-def test_account_id_requires_non_empty():
+def test_connection_id_requires_non_empty():
     with pytest.raises(ValidationError):
-        AccountIdParams(account_id="")
+        ConnectionIdParams(connection_id="")
+
+
+def test_connection_id_valid():
+    p = ConnectionIdParams(connection_id="conn-1")
+    assert p.connection_id == "conn-1"
 
 
 def test_post_tweet_requires_text():

@@ -84,6 +84,14 @@ async def call_backend(ctx, method: str, path: str, params: dict | None = None,
             "error": "X Connector backend rejected our credentials — this has been logged.",
             "error_code": "PERMISSION_DENIED", "_config": True,
         }
+    if resp.status_code == 402:
+        detail = resp.body if isinstance(resp.body, dict) else {"detail": resp.body}
+        msg = detail.get("error") or detail.get("detail") or "X API credits depleted (insufficient funds on platform X account)."
+        return {
+            "error": f"X API credits depleted (insufficient funds): {msg}",
+            "error_code": "INSUFFICIENT_FUNDS",
+            "_config": True,
+        }
     if resp.status_code == 404:
         return {"error": "Not found.", "error_code": "NOT_FOUND", "_config": True}
     if resp.status_code >= 500:

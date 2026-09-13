@@ -11,7 +11,7 @@ from imperal_sdk.types import ActionResult
 
 from app import chat
 from api_client import call_backend, _err
-from params import AccountIdParams, NoParams
+from params import ConnectionIdParams, NoParams
 from response_models import (
     AccountsListResult, AccountSummaryRecord, AuthorizeUrlResult, DisconnectResultRecord,
 )
@@ -71,9 +71,10 @@ async def fn_list_x_accounts(ctx, params: NoParams) -> ActionResult:
     effects=["delete:connection"],
     data_model=DisconnectResultRecord,
 )
-async def fn_disconnect_x_account(ctx, params: AccountIdParams) -> ActionResult:
+async def fn_disconnect_x_account(ctx, params: ConnectionIdParams) -> ActionResult:
     """Disconnect X account."""
-    data = await call_backend(ctx, "DELETE", f"/v1/oauth/accounts/{params.account_id}")
+    target_id = params.connection_id or params.account_id or ""
+    data = await call_backend(ctx, "DELETE", f"/v1/oauth/accounts/{target_id}")
     if "error" in data:
         return _err(data)
     result = DisconnectResultRecord(**data)

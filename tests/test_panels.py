@@ -78,9 +78,9 @@ async def test_sidebar_connected_shows_accounts_list(monkeypatch):
     titles = {li["props"]["title"] for li in list_items}
     assert titles == {"@notVallium", "@secondacc"}
 
-    # Disconnect action wired to disconnect_x_account with the right account_id
+    # Disconnect action wired to disconnect_x_account with the right connection_id
     disconnect_targets = {
-        li["props"]["actions"][0]["on_click"]["params"]["account_id"]
+        li["props"]["actions"][0]["on_click"]["params"]["connection_id"]
         for li in list_items
     }
     assert disconnect_targets == {"acc-1", "acc-2"}
