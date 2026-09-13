@@ -58,7 +58,7 @@ async def sidebar_panel(ctx):
 
     if not accounts:
         children = [
-            ui.Header(text="X (Twitter)", level=4),
+            ui.Header(text="X", level=4),
             ui.Badge(label="○ not connected", color="gray"),
             ui.Divider(),
             ui.Text(
@@ -92,7 +92,7 @@ async def sidebar_panel(ctx):
     # Connected accounts list
     items = _account_items(accounts)
     children = [
-        ui.Header(text="X (Twitter)", level=4),
+        ui.Header(text="X", level=4),
         ui.Badge(label=f"● {len(accounts)} connected", color="green"),
         ui.Divider(),
         ui.List(items=items),
@@ -120,9 +120,19 @@ async def workspace_panel(ctx):
         accounts = []
 
     if not accounts:
-        return ui.Empty(
-            message="Connect your X account in the sidebar to view metrics and activity charts.",
-            icon="Twitter",
+        return ui.Stack(
+            gap=4,
+            align="center",
+            children=[
+                ui.Avatar(fallback="X", size="lg"),
+                ui.Header(text="X", level=3, subtitle="Connect your account to view profile and analytics"),
+                ui.Button(
+                    label="Sign in with X",
+                    icon="Plus",
+                    variant="primary",
+                    on_click=ui.Call("connect_x_account"),
+                ),
+            ],
         )
 
     primary = accounts[0]
